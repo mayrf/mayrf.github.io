@@ -1,0 +1,10 @@
+/* :root { */
+/*   /\* Base theme knobs *\/ */
+/*   --bg-h: 341; */
+/*   --bg-s: 100%; */
+/*   --bg-l: 91%; */
+/* } */
+/* Code text: slightly brighter than muted */
+--color-text-code: hsl(
+  var(--bg-h) var(--bg-s) clamp(20%, calc(90% - var(--bg-l)), 85%)
+);

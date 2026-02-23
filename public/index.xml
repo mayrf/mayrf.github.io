@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>mayrf</title>
+    <link>http://localhost:1313/</link>
+    <description>Recent content on mayrf</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 23 Feb 2026 23:54:24 +0100</lastBuildDate>
+    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Home Manager Silently Disables cache.nixos.org</title>
+      <link>http://localhost:1313/posts/my-first-post/</link>
+      <pubDate>Mon, 23 Feb 2026 23:54:24 +0100</pubDate>
+      <guid>http://localhost:1313/posts/my-first-post/</guid>
+      <description>&lt;h1 id=&#34;home-manager-silently-disables-cachenixosorg&#34;&gt;Home Manager Silently Disables cache.nixos.org&lt;/h1&gt;&#xA;&lt;p&gt;&lt;strong&gt;TL;DR:&lt;/strong&gt; Setting &lt;code&gt;nix.settings.substituters&lt;/code&gt; in Home Manager overrides your system config and disables &lt;code&gt;cache.nixos.org&lt;/code&gt;, causing everything to build from source. Remove it from Home Manager.&lt;/p&gt;&#xA;&lt;h2 id=&#34;the-problem&#34;&gt;The Problem&lt;/h2&gt;&#xA;&lt;p&gt;If you&amp;rsquo;re building packages from source instead of fetching from cache, check this:&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;$ nix show-config &lt;span class=&#34;p&#34;&gt;|&lt;/span&gt; grep substituters&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# Is cache.nixos.org missing?&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;the-culprit&#34;&gt;The Culprit&lt;/h2&gt;&#xA;&lt;p&gt;Home Manager creates &lt;code&gt;~/.config/nix/nix.conf&lt;/code&gt; which &lt;strong&gt;replaces&lt;/strong&gt; system-level substituters:&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-nix&#34; data-lang=&#34;nix&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;c1&#34;&gt;# In Home Manager - this is the problem!&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;n&#34;&gt;nix&lt;/span&gt;&lt;span class=&#34;o&#34;&gt;.&lt;/span&gt;&lt;span class=&#34;n&#34;&gt;settings&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;  &lt;span class=&#34;n&#34;&gt;substituters&lt;/span&gt; &lt;span class=&#34;o&#34;&gt;=&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;[&lt;/span&gt; &lt;span class=&#34;s2&#34;&gt;&amp;#34;https://some-other-cache.com&amp;#34;&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;];&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;p&#34;&gt;};&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This is a &lt;a href=&#34;https://github.com/NixOS/nix/issues/4561&#34;&gt;known issue&lt;/a&gt; where setting substituters in Home Manager accidentally disables cache.nixos.org.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

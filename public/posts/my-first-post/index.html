@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html
+  lang="en-us"
+  dir="ltr"
+>
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>
+  Home Manager Silently Disables cache.nixos.org | mayrf
+</title>
+ 
+<link rel="canonical" href="http://localhost:1313/posts/my-first-post/" />
+
+
+<meta property="og:title" content="Home Manager Silently Disables cache.nixos.org" />
+
+<meta
+  property="og:type"
+  content="article"
+/>
+<meta property="og:url" content="http://localhost:1313/posts/my-first-post/" />
+ 
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Home Manager Silently Disables cache.nixos.org" />
+      
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Home Manager Silently Disables cache.nixos.org",
+    "url": "http:\/\/localhost:1313\/posts\/my-first-post\/",
+    "datePublished": "2026-02-23T23:54:24\u002b01:00",
+    "dateModified": "2026-02-23T23:54:24\u002b01:00"
+  }
+</script>
+ <link rel="apple-touch-icon" sizes="57x57" href="/favicon_io/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="/favicon_io/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="/favicon_io/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="/favicon_io/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="/favicon_io/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/favicon_io/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/favicon_io/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/favicon_io/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon_io/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192"  href="/favicon_io/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon_io/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon_io/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon_io/favicon-16x16.png">
+<link rel="manifest" href="/favicon_io/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/favicon_io/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+ 
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/custom.css">
+
+
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">Skip to content</a>
+    <header><nav class="path-nav">
+  <ol>
+    
+  
+    
+  
+    
+  
+  <li>
+    /
+    <a href="/">mayrf</a>
+    /
+  </li>
+
+  
+  <li>
+    
+    <a href="/posts/">Posts</a>
+    /
+  </li>
+
+  
+  <li class="current">
+    
+    <a href="/posts/my-first-post/">Home Manager Silently Disables cache.nixos.org</a>
+    
+  </li>
+
+  </ol>
+</nav>
+
+
+
+</header>
+    <main id="main-content">
+  <h1>Home Manager Silently Disables cache.nixos.org</h1>
+  
+
+
+  
+  
+  
+  
+    <nav class="toc">
+      <strong>Table of contents</strong>
+      <div class="toc-content">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#the-problem">The Problem</a></li>
+    <li><a href="#the-culprit">The Culprit</a></li>
+    <li><a href="#the-fix">The Fix</a></li>
+    <li><a href="#why-this-happens">Why This Happens</a>
+      <ul>
+        <li><a href="#what-about-standalone-home-manager">What About Standalone Home Manager?</a></li>
+      </ul>
+    </li>
+    <li><a href="#related-issues">Related Issues</a></li>
+  </ul>
+</nav>
+      </div>
+    </nav>
+  
+
+  
+  <h1 id="home-manager-silently-disables-cachenixosorg">Home Manager Silently Disables cache.nixos.org</h1>
+<p><strong>TL;DR:</strong> Setting <code>nix.settings.substituters</code> in Home Manager overrides your system config and disables <code>cache.nixos.org</code>, causing everything to build from source. Remove it from Home Manager.</p>
+<h2 id="the-problem">The Problem</h2>
+<p>If you&rsquo;re building packages from source instead of fetching from cache, check this:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">$ nix show-config <span class="p">|</span> grep substituters
+</span></span><span class="line"><span class="cl"><span class="c1"># Is cache.nixos.org missing?</span>
+</span></span></code></pre></div><h2 id="the-culprit">The Culprit</h2>
+<p>Home Manager creates <code>~/.config/nix/nix.conf</code> which <strong>replaces</strong> system-level substituters:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-nix" data-lang="nix"><span class="line"><span class="cl"><span class="c1"># In Home Manager - this is the problem!</span>
+</span></span><span class="line"><span class="cl"><span class="n">nix</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="n">substituters</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&#34;https://some-other-cache.com&#34;</span> <span class="p">];</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></div><p>This is a <a href="https://github.com/NixOS/nix/issues/4561">known issue</a> where setting substituters in Home Manager accidentally disables cache.nixos.org.</p>
+<h2 id="the-fix">The Fix</h2>
+<p><strong>Remove <code>nix.settings.substituters</code> from Home Manager:</strong></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-nix" data-lang="nix"><span class="line"><span class="cl"><span class="c1"># BAD</span>
+</span></span><span class="line"><span class="cl"><span class="n">nix</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">substituters</span> <span class="o">=</span> <span class="p">[</span> <span class="o">...</span> <span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># GOOD - keep other settings, just not substituters</span>
+</span></span><span class="line"><span class="cl"><span class="n">nix</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="n">experimental-features</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&#34;nix-command&#34;</span> <span class="s2">&#34;flakes&#34;</span> <span class="p">];</span>
+</span></span><span class="line"><span class="cl">  <span class="n">warn-dirty</span> <span class="o">=</span> <span class="no">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="cl"><span class="n">nix</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">substituters</span> <span class="o">=</span> <span class="p">[</span> <span class="o">...</span> <span class="p">];</span>
+</span></span></code></pre></div><p>Rebuild and verify:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">home-manager switch  <span class="c1"># or sudo nixos-rebuild switch</span>
+</span></span><span class="line"><span class="cl">nix show-config <span class="p">|</span> grep substituters  <span class="c1"># Should show cache.nixos.org</span>
+</span></span></code></pre></div><h2 id="why-this-happens">Why This Happens</h2>
+<p><strong>The real problem:</strong> When you set <code>nix.settings.substituters</code> in Home Manager, it writes to <code>~/.config/nix/nix.conf</code>. This user-level configuration can override your system-level substituters from <code>/etc/nix/nix.conf</code>.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-nix" data-lang="nix"><span class="line"><span class="cl"><span class="c1"># In your NixOS config</span>
+</span></span><span class="line"><span class="cl"><span class="n">nix</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">substituters</span> <span class="o">=</span> <span class="p">[</span> 
+</span></span><span class="line"><span class="cl">  <span class="s2">&#34;https://cache.nixos.org&#34;</span>
+</span></span><span class="line"><span class="cl">  <span class="s2">&#34;https://nix-community.cachix.org&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># In your Home Manager config</span>
+</span></span><span class="line"><span class="cl"><span class="n">nix</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">substituters</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&#34;https://my-cache.com&#34;</span> <span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Result when running nix commands as your user:</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># You may only get: [ &#34;https://my-cache.com&#34; ]</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># Losing access to: cache.nixos.org AND nix-community.cachix.org </span>
+</span></span></code></pre></div><p>When Nix reads configuration, it processes both system (<code>/etc/nix/nix.conf</code>) and user (<code>~/.config/nix/nix.conf</code>) config files. For certain settings like <code>substituters</code>, the user config can take precedence, effectively replacing the system configuration instead of merging with it.</p>
+<p><strong>The inconsistency:</strong> NixOS modules automatically include <code>cache.nixos.org</code> as a default when you configure <code>nix.settings.substituters</code>, but Home Manager doesn&rsquo;t provide this same behavior.</p>
+<h3 id="what-about-standalone-home-manager">What About Standalone Home Manager?</h3>
+<p>If you&rsquo;re using Home Manager in <strong>standalone mode</strong> (on a non-NixOS system), you likely need to configure substituters in Home Manager since there may not be a system config. In this case, explicitly include all caches you want:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-nix" data-lang="nix"><span class="line"><span class="cl"><span class="c1"># Standalone Home Manager - include cache.nixos.org explicitly</span>
+</span></span><span class="line"><span class="cl"><span class="n">nix</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="n">substituters</span> <span class="o">=</span> <span class="p">[</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;https://cache.nixos.org&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;https://my-personal-cache.com&#34;</span>
+</span></span><span class="line"><span class="cl">  <span class="p">];</span>
+</span></span><span class="line"><span class="cl">  <span class="n">trusted-public-keys</span> <span class="o">=</span> <span class="p">[</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;my-personal-cache.com-1:...&#34;</span>
+</span></span><span class="line"><span class="cl">  <span class="p">];</span>
+</span></span><span class="line"><span class="cl"><span class="p">};</span>
+</span></span></code></pre></div><p><strong>On NixOS:</strong> The safest approach is to not configure <code>substituters</code> in Home Manager at all. Add all caches (system-wide and user-specific) to your NixOS system configuration instead, where they&rsquo;ll be properly managed with the cache.nixos.org default.</p>
+<h2 id="related-issues">Related Issues</h2>
+<ul>
+<li><a href="https://github.com/NixOS/nix/issues/4561">GitHub #4561</a> - &ldquo;cache.nixos.org should only be disabled via a flag&rdquo;</li>
+<li><a href="https://github.com/NixOS/nixpkgs/issues/158356">GitHub #158356</a> - Substituters behavior changes</li>
+<li><a href="https://discourse.nixos.org/t/home-manager-doesnt-use-extra-substituters/33196">Discourse</a> - Home Manager substituters problems</li>
+</ul>
+<hr>
+<p><em>Don&rsquo;t configure <code>substituters</code> in Home Manager on NixOS—let your system handle it.</em></p>
+
+  <div class="time"><time datetime="2026-02-23">2026-02-23&nbsp;</time>
+</div>
+
+  
+  
+    <div class="comments">
+
+</div>
+  
+
+  
+    <div class="terminal-nav">
+      <div class="back-nav">
+        
+          <a href="/posts/" class="back-link">../</a>
+        
+      </div>
+    </div>
+  
+</main>
+    <footer><p>
+  &copy; Copyright 2026 &middot;
+  <a href="https://github.com/ntk148v/shibui">shibui</a>
+</p>
+</footer>
+  </body>
+</html>
