@@ -2,11 +2,15 @@ baseURL = 'https://mayrf.github.io/'
 languageCode = 'en-us'
 title = 'mayrf'
 theme = "shibui"
-name = "oida"
+name = "mayrf"
+
+[caches]
+  [caches.images]
+    dir = ':cacheDir/images'
 
 [params]
   # author = "mayrf"
-  email = "your.email@example.com"
+  email = "70516376+mayrf@users.noreply.github.com"
 
 [author]
   name = "mayrf"
